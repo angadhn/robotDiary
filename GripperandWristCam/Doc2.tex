@@ -1,0 +1,98 @@
+\documentclass[a4paper]{article}
+
+%The following chunk of stuff is to get code snippets in tex
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java, %Change language here for different language.
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+% amsmath package addition
+\usepackage{amsmath, hyperref}
+
+%Put title info here
+\title{Basic setup for the Robotiq Gripper control
+with ROS}
+\author{Angadh Nanjangud}
+\date{started on: November 17, 2017\\ edited on: \today}
+
+% Document begins here
+\begin{document}
+\maketitle
+
+\section{Robotiq ROS-I Repository}
+As with anything that needs to be build in ROS, I took the 
+I cloned the git robotiq repository from
+\href{https://github.com/ros-industrial/robotiq}{here}.
+However, subsequent to cloning, I had issues with building
+(i.e. run \texttt{catkin\_make}) as the robotiq repo is for
+ROS Jade whereas we are running Kinetic. These were resolved
+via conversations with the developer and just putzing around
+based on errors. The conversation and fixes are discussed
+\href{https://github.com/ros-industrial/robotiq/issues/116}
+{here}. My kinetic-devel branch is available
+\href{https://github.com/angadhn/robotiq/tree/kinetic-devel}
+{here}.
+
+\section{Setting up UR5 to communicate with an Ubuntu machine
+via  ROS}
+The Robotiq Gripper setup is not well documented. Or, rather,
+I should say that the documentation required som significant
+hunting. Helpful resources in getting this to work specifically
+can be found
+\href{https://us.v-cdn.net/6027406/uploads/editor/g9/o29lnir20s3t.pdf}
+{here}(the pdf was found via some hunting around on
+Robotiq's DoF community).
+
+First, open a new terminal and start $roscore$.
+Then, open another terminal and run the following commands 
+to find out the port on which the controller is connected,
+and to change the access permissions on the USB port. And
+then start the driver's node. The last step assumes you have
+already sourced \texttt{setup.bash} from the \texttt{devel}
+directory of the workspace to which the repository was cloned.
+\begin{lstlisting}
+
+$ source kineticDevelWS/devel/setup.bash
+$ dmesg | grep tty
+$ sudo chmod a+wr /dev/ttyACM0sudo 
+$ rosrun robotiq\_c\_model\_control CModelRtuNode.py /dev/ttyACM0
+\end{lstlisting}
+
+The driver listens for messages on ``CModelRobotOutput''
+using the ``SModel\_robot\_output'' msg type. The messages
+are interpreted and commands are sent to the Gripper accordingly.
+A simple controller node is provided which can be run in
+another terminal, using the command:
+\begin{lstlisting}
+$ rosrun robotiq\_c\_model\_control CModelSimpleController.py
+\end{lstlisting}
+They are definitely a tad buggy in that the
+\texttt{/dev/ttyACM0} does not show up sometimes. I will
+have to examine that some more and update this document
+once I have it all figure out.
+
+\section{Wrist Camera introduction}
+Our gripper sits on the wrist cam which seems to be accessible
+via Linux. Might be able to get ROS to talk with it.
+
+\end{document}

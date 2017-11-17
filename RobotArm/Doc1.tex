@@ -1,0 +1,162 @@
+\documentclass[a4paper]{article}
+
+%The following chunk of stuff is to get code snippets in tex
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java, %Change language here for different language.
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+% amsmath package addition
+\usepackage{amsmath, hyperref}
+
+%Put title info here
+\title{Initial setup for the UR5 communications with ROS}
+\author{Angadh Nanjangud}
+\date{started on: November 7, 2017\\ edited on: \today}
+
+% Document begins here
+\begin{document}
+\maketitle
+
+\section{Introduction}
+This is a document that will inform the user on using ROS to
+communicate with the UR5 on their personal computer. It will
+also discuss the usage of MoveIt! for motion planning of the
+UR5 and execute said plans on the physical robot.
+
+The pre-requisites are that the user have ROS Kinetic. The
+operating system that is being used for this tutorial is
+Ubuntu 16.04. YMMV depending on what you have. It is recommended
+that the user go through the ROS tutorials available at
+\url{wiki.ros.org/tutorials}.
+
+\section{Setting up UR5 to communicate with an Ubuntu machine
+via  ROS}
+The UR5 is decently documented (but not exceptionally well).
+The ROS page on
+\href{http://wiki.ros.org/universal_robot/Tutorials/Getting%20Started%20with%20a%20Universal%20Robot%20and%20ROS-Industrial}
+{'Getting Started with a Universal Robot and ROS-Industrial'}
+is a good starting point. However, I will document the entire
+process here for sake of completeness.
+
+\begin{itemize}
+
+  \item {\bf Step 1: Setup a catkin workspace}
+    Open up a terminal and create a catkin workspace following
+    the instructions
+    \href{http://wiki.ros.org/catkin/Tutorials/create_a_workspace}
+    {here}. I chose to call the catkin workspace driver\_ws.
+    \begin{lstlisting}%Note the bash script choice
+    $ mkdir -p ~/driver_ws/src
+    $ cd ~/driver_ws
+    $ catkin_make
+    $ source devel/setup.bash
+    \end{lstlisting}
+  
+  \item{\bf Step 2: Obtain UR5 driver}
+    First, acquire the necessary universal robot ROS packages
+    by running the following command in your terminal:
+    \begin{lstlisting}
+    $ sudo apt-get install ros-kinetic-ur-driver ros-kinetic-universal-robot
+    \end{lstlisting}
+    Since the UR5 robot is running Polyscope 3.x, an additional
+    installation of the \texttt{ur\_modern\_driver} is
+    necessary which can be obtained via git. Ensure that this
+    installation is being done in the previously built
+    catkin workspace from step 1; in our case, this is the
+    \texttt{~/driver\_ws/src} directory. We then run
+    \texttt{catkin\_make} again and also source the
+    \texttt{setup.bash}file again:
+    \begin{lstlisting}
+    $ cd ~/driver_ws/src
+    $ git clone https://github.com/Zagitta/ur_modern_driver.git
+    $ cd ~/driver_ws/
+    $ catkin_make
+    $ source devel/setup.bash
+    \end{lstlisting}
+
+  \item {\bf Step 3: Connect UR5 and computer}
+    Follow instructions on step 3.2 on
+    \href{http://wiki.ros.org/universal_robot/Tutorials/Getting%20Started%20with%20a%20Universal%20Robot%20and%20ROS-Industrial}
+    {'Getting Started with a Universal Robot and ROS-Industrial'}
+    to configure the IP of the robot. This is used in Step 4
+    to connect the robot to the dektop computer. In my setup,
+    the desktop and robot's CB3 unit are wired to the router.
+    The robot's IP has been set to $192.168.0.50$.
+
+  \item{\bf Step 4: Testing the connection}
+   In the same terminal where the
+    \texttt{source devel/setup.bash} was executed, run the
+    following:
+    \begin{lstlisting}
+    $ roslaunch ur_modern_driver ur5_bringup.launch robot_ip:=192.168.0.50
+    \end{lstlisting}
+    MAKE SURE NOBODY AND NOTHING IS IN THE VICINTY OF THE ROBOT
+    BEFORE RUNNING THIS NEXT STEP. Open a new terminal and run:
+    \begin{lstlisting}
+    $ rosrun ur_driver test_move.py
+    \end{lstlisting}
+    You should see the robot come to life at this point.
+    \texttt{test\_move.py} is a script within the
+    \texttt{ur\_modern\_driver} that we installed from git.
+\end{itemize}
+
+\section{MoveIt!, RViz, and the real UR5}
+With the driver still running in one of the terminals from step
+4 (i.e. \texttt{roslaunch} command), open a new terminal and
+run:
+\begin{lstlisting}
+$ roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch limited:=true
+\end{lstlisting}
+which basically loads what is needed for motion planning.
+In the above snippet, the flag \texttt{limited:=true}
+loads limits the joint motions to the range [$-\pi,\pi$].
+Then, we launch athe RViz gui with MoveIt! motion planning
+plugin by running:
+
+\begin{lstlisting}
+$ roslaunch ur5_moveit_config moveit_rviz.launch config:=true
+\end{lstlisting}
+
+\section{MoveIt!, RViz, and the UR5 on Gazebo}
+Instead of connecting to the real robot as explained in step
+4, open a new terminal and run:
+\begin{lstlisting}
+$ roslaunch ur_gazebo ur5.launch
+\end{lstlisting}
+and then do the same as mentioned in the previous section.
+\begin{lstlisting}
+$ roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch limited:=true
+\end{lstlisting}
+which basically loads what is needed for motion planning.
+In the above snippet, the flag \texttt{limited:=true}
+loads limits the joint motions to the range [$-\pi,\pi$].
+Then, we launch athe RViz gui with MoveIt! motion planning
+plugin by running:
+
+\begin{lstlisting}
+$ roslaunch ur5_moveit_config moveit_rviz.launch config:=true
+\end{lstlisting}
+
+
+\end{document}
