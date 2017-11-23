@@ -92,7 +92,18 @@ have to examine that some more and update this document
 once I have it all figure out.
 
 \section{Wrist Camera introduction}
-Our gripper sits on the wrist cam which seems to be accessible
-via Linux. Might be able to get ROS to talk with it.
+The gripper is mounted on the Robotiq wrsit cam and was detectable on
+Ubuntu under \texttt{dev}; this implies that you can stream the data.
+ROS provides many packages that can access and  publish the data. Based
+on Pete's advice, I installed the binaries for
+\href{http://wiki.ros.org/usb\_cam}{usb\_cam} via apt for ROS
+kinetic: \texttt{sudo apt-get install ros-kinetic-usb-cam}. Then,
+you should be able to launch a node for the cam by:
+\texttt{roslaunch usb\_cam usb\_cam\-test.launch /dev/ttyACM0}.
+
+\section{Useful things to read}
+[1] 
+[2] \href{https://blog.robotiq.com/bid/58716/Robotiq-s-Adaptive-Robot-Gripper-Now-on-ROS-Industrial}{Robotiq blog on ROS gripper}
+
 
 \end{document}
